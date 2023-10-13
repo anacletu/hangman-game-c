@@ -1,1 +1,3 @@
 # hangman
+
+Game in C
