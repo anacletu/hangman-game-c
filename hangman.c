@@ -6,19 +6,15 @@
 
 #define MAX_WORDS 100
 #define MAX_WORD_LENGTH 20
-#define MAX_ERRORS 6
+#define MAX_WRONG_GUESSES 6
 
-char ask_for_input(int n);
-int is_duplicate(char guess, char guesses[], int guess_counter);
-void print_letters(char *secret_word, int word_length, char guess, char underscores[]);
+char askForInput(int n);
+int isDuplicate(char guess, char guesses[], int guess_counter);
+void printLetters(char *secret_word, int word_length, char guess, char underscores[]);
 void drawing(int mistakes);
 
 int main(void)
 {
-    // defining variables
-    char *words[MAX_WORDS]; // array of pointers that will later receive addresses via malloc
-    int word_count = 0;
-
     // opening the txt file with words to be ramdonly used in the game
     FILE *word_list = fopen("words.txt", "r");
 
@@ -29,6 +25,8 @@ int main(void)
     }
 
     // reading the file and storing the words in the array
+    char *words[MAX_WORDS]; // array of pointers
+    int word_count = 0;     // tracking of words read to later use for rand function and freeing memory
     for (int i = 0; i < MAX_WORDS; i++)
     {
         words[i] = (char *)malloc(MAX_WORD_LENGTH); // dinamically allocating memory for each word
@@ -88,7 +86,7 @@ int main(void)
     {
         if (guess_counter == 0)
         {
-            guess = ask_for_input(guess_counter);
+            guess = askForInput(guess_counter);
             user_guesses[guess_counter] = guess;
             guess_counter++;
         }
@@ -96,15 +94,15 @@ int main(void)
         {
             do
             {
-                guess = ask_for_input(guess_counter);
-            } while (is_duplicate(guess, user_guesses, guess_counter) == 1);
+                guess = askForInput(guess_counter);
+            } while (isDuplicate(guess, user_guesses, guess_counter) == 1);
 
             user_guesses[guess_counter] = guess;
             guess_counter++;
         }
 
         // updating the word for the user
-        print_letters(selected_word, word_length, guess, word_on_screen);
+        printLetters(selected_word, word_length, guess, word_on_screen);
 
         // keeping track of correct and wrong guesses
         int mistake = 1;
@@ -125,7 +123,7 @@ int main(void)
         drawing(wrong_guess);
 
         // handling win and game over
-        if (wrong_guess == MAX_ERRORS)
+        if (wrong_guess == MAX_WRONG_GUESSES)
         {
             printf("Game over! Better luck next time.\n");
             printf("The word was %s.\n\n", selected_word);
@@ -133,15 +131,16 @@ int main(void)
         }
         if (correct_guess == word_length)
         {
-            printf("You won!");
+            printf("You won!\n\n");
             game = 0;
+            return 0;
         }
     }
 
     return 0;
 }
 
-char ask_for_input(int n) // asking for user's input and validating it
+char askForInput(int n) // this function asks for user input and makes sure it is a char, regardless of case (I still need to improve to handle cases where the user inputs a string)
 {
     char input;
 
@@ -153,13 +152,13 @@ char ask_for_input(int n) // asking for user's input and validating it
     if (input < 'A' || input > 'Z')
     {
         printf("Please, insert only characters from A to Z.\n");
-        input = ask_for_input(n);
+        input = askForInput(n);
     }
 
     return input;
 }
 
-int is_duplicate(char guess, char guesses[], int guess_counter)
+int isDuplicate(char guess, char guesses[], int guess_counter) // this function checks if the inputed char wasn't already used by the user (I still need to implement a visual tracking for the user of wrong guesses)
 {
     for (int i = 0; i < guess_counter; i++)
     {
@@ -172,7 +171,7 @@ int is_duplicate(char guess, char guesses[], int guess_counter)
     return 0; // The guess is not a duplicate
 }
 
-void print_letters(char *secret_word, int word_length, char guess, char underscores[]) // drawing letters and spaces
+void printLetters(char *secret_word, int word_length, char guess, char underscores[]) // this function updates the array of underscores to create the visual effect of guessing letters
 {
     for (int i = 0; i < word_length; i++)
     {
@@ -185,7 +184,7 @@ void print_letters(char *secret_word, int word_length, char guess, char undersco
     printf("\n\n");
 }
 
-void drawing(int mistakes)
+void drawing(int mistakes) // this function draws the hangman according to the number pf mistakes made by the user
 {
     // adapted to C language from the py souce in: https://gist.github.com/chrishorton/8510732aa9a80a03c829b09f12e20d9c
     char *pics[] = {
