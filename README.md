@@ -61,16 +61,6 @@ Before you begin, ensure you have met the following requirements:
 
 - [Adapted Hangman ASCII art from this source](https://gist.github.com/chrishorton/8510732aa9a80a03c829b09f12e20d9c).
 
-## Contributing
-
-Contributions are what make the open source community an amazing place to be.
-
-1. Fork the project.
-2. Create your feature branch.
-3. Commit your changes.
-4. Push to the branch.
-5. Open a pull request.
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
