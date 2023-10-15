@@ -11,7 +11,6 @@ A simple Hangman game written in C.
   - [Building](#building)
 - [How to Play](#how-to-play)
 - [Acknowledgments](#acknowledgments)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Features
