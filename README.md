@@ -1,9 +1,8 @@
-```markdown
 # Hangman Game
 
 A simple Hangman game written in C.
 
-![Hangman Screenshot](screenshot.png)
+![Hangman Screenshot](Screenshot.png)
 
 ## Table of Contents
 - [Features](#features)
