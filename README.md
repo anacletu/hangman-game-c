@@ -63,7 +63,7 @@ Before you begin, ensure you have met the following requirements:
 
 ## Contributing
 
-Contributions are what make the open source community an amazing place to be. We welcome contributions from the community.
+Contributions are what make the open source community an amazing place to be.
 
 1. Fork the project.
 2. Create your feature branch.
@@ -74,4 +74,3 @@ Contributions are what make the open source community an amazing place to be. We
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-```
