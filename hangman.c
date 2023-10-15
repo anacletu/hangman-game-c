@@ -6,21 +6,18 @@
 
 #define MAX_WORDS 100
 #define MAX_WORD_LENGTH 20
-#define MAX_ATTEMPTS 7
+#define MAX_ERRORS 6
 
-char ask_for_input(int guess_number);
-int print_letters(char *secret_word, char guess, int word_length, char printed[]);
-int isDuplicate(char guess, char guesses[], int guess_counter);
-void drawing(int word_length, int guess_counter, char *secret_word, char guesses[], int *game);
+char ask_for_input(int n);
+int is_duplicate(char guess, char guesses[], int guess_counter);
+void print_letters(char *secret_word, int word_length, char guess, char underscores[]);
+void drawing(int mistakes);
 
 int main(void)
 {
     // defining variables
-    char *words[MAX_WORDS];
+    char *words[MAX_WORDS]; // array of pointers that will later receive addresses via malloc
     int word_count = 0;
-    char guess;
-    char guesses[26];
-    int guess_counter = 0;
 
     // opening the txt file with words to be ramdonly used in the game
     FILE *word_list = fopen("words.txt", "r");
@@ -34,7 +31,7 @@ int main(void)
     // reading the file and storing the words in the array
     for (int i = 0; i < MAX_WORDS; i++)
     {
-        words[i] = (char *)malloc(MAX_WORD_LENGTH);
+        words[i] = (char *)malloc(MAX_WORD_LENGTH); // dinamically allocating memory for each word
         if (words[i] == NULL)
         {
             printf("Memory allocation failed for word %d.\n", i);
@@ -53,7 +50,7 @@ int main(void)
     srand(time(NULL)); // defining the seed for rand() based on EPOCH
     int chosen_word_index = rand() % word_count;
 
-    // saving the word in a new array and freeing memory
+    // saving the selected word in a new array and freeing memory
     int word_length = strlen(words[chosen_word_index]);
     char selected_word[word_length + 1];
     strcpy(selected_word, words[chosen_word_index]);
@@ -71,9 +68,6 @@ int main(void)
     printf("*********\n");
     printf("\n\n");
 
-    // loop until game is won or over
-    int game = 0;
-
     // setting the word spaces
     char word_on_screen[word_length];
     for (int i = 0; i < word_length; i++)
@@ -81,115 +75,119 @@ int main(void)
         word_on_screen[i] = '_';
     }
 
-    while (!game)
-    {
-        guess = ask_for_input(guess_counter);
+    // variables for the game
+    int game = 1;
+    int wrong_guess = 0;
+    int correct_guess = 0;
+    int guess_counter = 0;
+    char user_guesses[MAX_WORD_LENGTH];
+    char guess;
 
-        // tracking guesses and validating duplicates
-        if (guess_counter == 0 || !isDuplicate(guess, guesses, guess_counter))
+    // loop until game is won or over
+    while (game)
+    {
+        if (guess_counter == 0)
         {
-            guesses[guess_counter] = guess;
+            guess = ask_for_input(guess_counter);
+            user_guesses[guess_counter] = guess;
+            guess_counter++;
         }
         else
         {
-            printf("You have already tried letter %c.\n", guess);
+            do
+            {
+                guess = ask_for_input(guess_counter);
+            } while (is_duplicate(guess, user_guesses, guess_counter) == 1);
+
+            user_guesses[guess_counter] = guess;
+            guess_counter++;
         }
 
-        // updating the game
-        game = print_letters(selected_word, guesses[guess_counter], word_length, word_on_screen);
-        guess_counter++;
+        // updating the word for the user
+        print_letters(selected_word, word_length, guess, word_on_screen);
 
-        drawing(word_length, guess_counter, selected_word, guesses, &game);
+        // keeping track of correct and wrong guesses
+        int mistake = 1;
+        for (int i = 0; i < word_length; i++)
+        {
+            if (guess == selected_word[i])
+            {
+                correct_guess++;
+                mistake = 0;
+            }
+        }
+        if (mistake)
+        {
+            wrong_guess++;
+        }
+
+        // drawing the hangman
+        drawing(wrong_guess);
+
+        // handling win and game over
+        if (wrong_guess == MAX_ERRORS)
+        {
+            printf("Game over! Better luck next time.\n");
+            printf("The word was %s.\n\n", selected_word);
+            game = 0;
+        }
+        if (correct_guess == word_length)
+        {
+            printf("You won!");
+            game = 0;
+        }
     }
 
     return 0;
 }
 
-char ask_for_input(int guess_number) // asking for user's input and validating it
+char ask_for_input(int n) // asking for user's input and validating it
 {
     char input;
-    do
+
+    printf("Insert your guess %d: ", n + 1);
+    scanf(" %c", &input);
+    printf("\n");
+    input = toupper(input);
+
+    if (input < 'A' || input > 'Z')
     {
-        printf("Insert your guess %d: ", guess_number + 1);
-        scanf(" %c", &input);
-        printf("\n");
-        input = toupper(input);
-        if (input < 'A' || input > 'Z')
-        {
-            printf("Please, insert only characters from A to Z.\n");
-        }
-    } while (input < 'A' || input > 'Z');
+        printf("Please, insert only characters from A to Z.\n");
+        input = ask_for_input(n);
+    }
 
     return input;
 }
 
-int isDuplicate(char guess, char guesses[], int guess_counter)
+int is_duplicate(char guess, char guesses[], int guess_counter)
 {
     for (int i = 0; i < guess_counter; i++)
     {
         if (guess == guesses[i])
         {
+            printf("You have already tried letter %c.\n\n", guess);
             return 1; // The guess is a duplicate
         }
     }
     return 0; // The guess is not a duplicate
 }
 
-int print_letters(char *secret_word, char guess, int word_length, char printed[]) // drawing letters and spaces
+void print_letters(char *secret_word, int word_length, char guess, char underscores[]) // drawing letters and spaces
 {
-    int word_guessed = 1; // Assume the word is guessed until an unguessed letter is found.
-
     for (int i = 0; i < word_length; i++)
     {
         if (guess == secret_word[i])
         {
-            printed[i] = guess;
+            underscores[i] = guess;
         }
-        if (printed[i] == '_') // Unguessed letter found
-        {
-            word_guessed = 0;
-        }
-        printf("%c ", printed[i]);
+        printf("%c ", underscores[i]);
     }
-
     printf("\n\n");
-
-    if (word_guessed)
-    {
-        printf("Congratulations! You've guessed the word!\n");
-    }
-
-    printf("Secret Word: %s, Guess: %c, Word Guessed: %d\n\n", secret_word, guess, word_guessed);
-    return (word_guessed);
 }
 
-void drawing(int word_length, int guess_counter, char *secret_word, char guesses[], int *game)
+void drawing(int mistakes)
 {
-    int wrong_guess = 0; // Initialize it to 1 to account for the initial picture.
-
-    for (int i = 0; i < guess_counter; i++)
-    {
-        int is_wrong = 1; // Initialize as wrong, and only set to 0 if guess is correct.
-        for (int j = 0; j < word_length; j++)
-        {
-            if (secret_word[i] == guesses[j])
-            {
-                is_wrong = 0; // The guess is correct.
-                break;
-            }
-        }
-        if (is_wrong)
-        {
-            wrong_guess++;
-        }
-    }
-
-    if (wrong_guess >= MAX_ATTEMPTS)
-    {
-        printf("Game over!\n");
-        *game = 1;
-    }
-
+    // adapted to C language from the py souce in: https://gist.github.com/chrishorton/8510732aa9a80a03c829b09f12e20d9c
     char *pics[] = {
         "  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
 
@@ -201,9 +199,9 @@ void drawing(int word_length, int guess_counter, char *secret_word, char guesses
 
         "  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
 
-        "  +---+\n  |   |\n  O   |\n /|\\  |\n /     |\n      |\n=========",
+        "  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
 
         "  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========="};
 
-    printf("%s\n", pics[wrong_guess]);
+    printf("%s\n\n", pics[mistakes]);
 }
