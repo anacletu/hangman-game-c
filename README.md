@@ -71,7 +71,6 @@ Before you begin, ensure you have met the following requirements:
 
 1. Improving visual art for victory and game-over.
 2. Adding levels and different word-banks.
-3. Show secret word at the end in case of game-over.
 
 ## Acknowledgments
 
